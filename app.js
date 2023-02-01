@@ -4,6 +4,8 @@ const morgan = require("morgan");
 const routes = require("./src/routes");
 const { globalErrorHandler } = require("./src/middlewares/errorHandler");
 
+const router = require("./src/routes/index");
+
 const createApp = () => {
     const app = express();
 
@@ -12,6 +14,8 @@ const createApp = () => {
     app.use(express.json());
     app.use(routes);
     app.use(globalErrorHandler);
+
+		app.use(router);
 
     return app;
 }
