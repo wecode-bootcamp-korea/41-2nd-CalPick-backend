@@ -1,6 +1,5 @@
 const { DataSource } = require("typeorm");
 
-
 const appDataSource = new DataSource({
   type: process.env.TYPEORM_CONNECTION,
   host: process.env.TYPEORM_HOST,
@@ -9,7 +8,6 @@ const appDataSource = new DataSource({
   password: process.env.TYPEORM_PASSWORD,
   database: process.env.TYPEORM_DATABASE,
 });
-
 
 module.exports = {
   appDataSource,

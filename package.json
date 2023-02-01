@@ -2,7 +2,7 @@
   "name": "41-2nd-calpick-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "start": "nodemon server.js",
     "test": "DOTENV_CONFIG_PATH=.env.test jest --setupFiles=dotenv/config"
