@@ -2,3 +2,4 @@ node_modules
 .env
 .env.test
 schema.sql
+dbInsert.js
