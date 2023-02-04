@@ -17,5 +17,5 @@ const createApp = () => {
 }
 
 module.exports = {
-    createApp,
+  createApp,
 }
