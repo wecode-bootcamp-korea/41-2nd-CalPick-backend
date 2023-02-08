@@ -1,5 +1,7 @@
-const { catchAsync } = require("../middlewares/errorHandler");
 const userService = require("../services/userService");
+const { catchAsync } = require("../middlewares/errorHandler");
+const { detectError } = require("../utils/detectError");
+
 
 const signup = catchAsync(async (req, res) => {
   const { email, password, name} = req.body;
@@ -11,6 +13,30 @@ const signup = catchAsync(async (req, res) => {
   res.status(201).json({ message: "SIGNUP_SUCCESS" });
 });
 
+
+const signin = catchAsync(async (req, res) => {
+	const { email, password } = req.body;
+	if (!email || !password) detectError("NO INPUT", 404);
+
+	const accessToken = await userService.signIn(email, password);
+
+	res.status(201).json({ accessToken: accessToken });
+});
+
+
+const oAuth = catchAsync(async (req, res) => {
+	const { code } = req.query;
+
+	if (!code) detectError("NO AUTH CODE", 404);
+
+	const accessToken = await userService.oAuth(code);
+
+	res.status(201).json({ accessToken: accessToken });
+});
+
+
 module.exports = {
-    signup,
+	signup,
+	signin,
+	oAuth
 }
