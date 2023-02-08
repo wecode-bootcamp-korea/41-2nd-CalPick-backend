@@ -21,4 +21,9 @@ const checkVerificationCode = catchAsync(async (req, res) => {
 	await verificationService.checkVerificationCode(mobile, code, sentDate, userId);
 
 	res.status(201).json({message: "인증완료"});
-})
+});
+
+module.exports = {
+	createVerification,
+	checkVerificationCode
+}
