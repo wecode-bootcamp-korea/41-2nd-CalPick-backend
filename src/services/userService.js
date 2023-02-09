@@ -11,10 +11,8 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const userDao = require("../models/userDao");
-
-const GOOGLE_CLIENT_KEY = process.env.GOOGLE_CLIENT_KEY;
-const GOOGLE_SECRET_KEY = process.env.GOOGLE_SECRET_KEY;
-const REDIRECT_URL = process.env.GOOGLE_REDIRECT_URI;
+const { kakaoOAuth, googleOAuth } = require("./util/oAuth");
+ 
 const JSON_SECRET_KEY = process.env.JSON_SECRET_KEY;
 
 
@@ -42,25 +40,20 @@ const signIn = async (enteredEmail, enteredPassword) => {
 	return accessToken;
 }
 
-const googleLogin = async (code) => {
-	const res = await axios({
-		url: "https://oauth2.googleapis.com/token",
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded"
-		},
-		params: {
-			"client_id": GOOGLE_CLIENT_KEY,
-			"client_secret": GOOGLE_SECRET_KEY,
-			"code": code,
-			"grant_type": "authorization_code",
-			"redirect_uri": REDIRECT_URL
-		}
-	}).then((res) => {
-		return res.data;
-	}).catch((err) => {
-		detectError("NOT CONNECTED", 404);
-	})
+const oAuth = async (code, hostName) => {
+
+
+	if (hostName === "accounts.google.com") {
+		accessToken = await googleOAuth(code);
+	}
+
+	if (hostName === "kauth.kakao.com") {
+		accessToken = await kakaoOAuth(code);
+	}
+
+
+
+	// console.log(res)
 
 	if (!res || !res.id_token) detectError("NO AUTH TOKEN", 403);
 	
@@ -77,8 +70,45 @@ const googleLogin = async (code) => {
 	return accessToken;
 }
 
+// const oAuth = async (code) => {
+
+// 	const res = await axios({
+// 		url: "https://kauth.kakao.com/oauth/token",
+// 		method: "POST",
+// 		headers: {
+// 			"Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+// 		},
+// 		params: {
+// 			"client_id": GOOGLE_CLIENT_KEY,
+// 			"client_secret": GOOGLE_SECRET_KEY,
+// 			"code": code,
+// 			"grant_type": "authorization_code",
+// 			"redirect_uri": REDIRECT_URL
+// 		}
+// 	}).then((res) => {
+// 		return res.data;
+// 	}).catch((err) => {
+// 		detectError("NOT CONNECTED", 404);
+// 	})
+
+// 	if (!res || !res.id_token) detectError("NO AUTH TOKEN", 403);
+	
+// 	const ID_TOKEN = res.id_token;
+// 	const { email, email_verified, name} = jwt.decode(ID_TOKEN);
+	
+// 	if (!email_verified) detectError("NOT VERIFED EMAIL", 401);
+
+// 	const result = await userDao.createoAuthUser(name, email);
+// 	const userId = result.insertId;
+
+// 	const accessToken = jwt.sign({ "userId": userId, "userName": name, "userEmail": email }, JSON_SECRET_KEY);
+	
+// 	return accessToken;
+// }
+
+
 module.exports = {
   signUp,
 	signIn,
-	googleLogin,
+	oAuth,
 }
