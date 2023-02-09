@@ -1,22 +1,29 @@
-const { emailValidationCheck, passwordValidationCheck } = require("../utils/validation-check");
-const { detectError } = require("../utils/detectError");
-
 const path = require("path");
 require("dotenv").config({
     path: path.resolve(__dirname, "../../.env")
-})
+});
 
 const axios = require("axios");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
+const { kakaoOAuth, googleOAuth } = require("./util/oAuth");
+const { emailValidationCheck, passwordValidationCheck } = require("../utils/validation-check");
+const { detectError } = require("../utils/detectError");
 const userDao = require("../models/userDao");
 
-const GOOGLE_CLIENT_KEY = process.env.GOOGLE_CLIENT_KEY;
-const GOOGLE_SECRET_KEY = process.env.GOOGLE_SECRET_KEY;
-const REDIRECT_URL = process.env.GOOGLE_REDIRECT_URI;
+ 
 const JSON_SECRET_KEY = process.env.JSON_SECRET_KEY;
 
+
+const handlerOAuthLogin = async (name, email, iss, socialId) => {
+	const result = await userDao.createoAuthUser(name, email, iss, socialId);
+	const userId = result.insertId;
+
+	const accessToken = jwt.sign({ "userId": userId, "userName": name, "userEmail": email }, JSON_SECRET_KEY);
+	
+	return accessToken;
+}
 
 const signUp = async (email, password, name) => {
   await emailValidationCheck(email);
@@ -42,43 +49,23 @@ const signIn = async (enteredEmail, enteredPassword) => {
 	return accessToken;
 }
 
-const googleLogin = async (code) => {
-	const res = await axios({
-		url: "https://oauth2.googleapis.com/token",
-		method: "POST",
-		headers: {
-			"Content-Type": "application/x-www-form-urlencoded"
-		},
-		params: {
-			"client_id": GOOGLE_CLIENT_KEY,
-			"client_secret": GOOGLE_SECRET_KEY,
-			"code": code,
-			"grant_type": "authorization_code",
-			"redirect_uri": REDIRECT_URL
-		}
-	}).then((res) => {
-		return res.data;
-	}).catch((err) => {
-		detectError("NOT CONNECTED", 404);
-	})
+const oAuth = async (code, hostName) => {
+	if (hostName === "accounts.google.com") {
+		const { name, email, iss, socialId } = await googleOAuth(code);
 
-	if (!res || !res.id_token) detectError("NO AUTH TOKEN", 403);
-	
-	const ID_TOKEN = res.id_token;
-	const { email, email_verified, name} = jwt.decode(ID_TOKEN);
-	
-	if (!email_verified) detectError("NOT VERIFED EMAIL", 401);
+		return await handlerOAuthLogin(name, email, iss, socialId);
+	}
 
-	const result = await userDao.createoAuthUser(name, email);
-	const userId = result.insertId;
+	if (hostName === "kauth.kakao.com") {
+		const { name, email, iss, socialId } = await kakaoOAuth(code);
 
-	const accessToken = jwt.sign({ "userId": userId, "userName": name, "userEmail": email }, JSON_SECRET_KEY);
-	
-	return accessToken;
+		return await handlerOAuthLogin(name, email, iss, socialId);
+	}
 }
+
 
 module.exports = {
   signUp,
 	signIn,
-	googleLogin,
+	oAuth,
 }

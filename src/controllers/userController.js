@@ -24,7 +24,7 @@ const signin = catchAsync(async (req, res) => {
 });
 
 
-const googleLogin = catchAsync(async (req, res) => {
+const oAuth = catchAsync(async (req, res) => {
 	const { code } = req.query;
 
 	if (!code) detectError("NO AUTH CODE", 401);
@@ -38,5 +38,5 @@ const googleLogin = catchAsync(async (req, res) => {
 module.exports = {
 	signup,
 	signin,
-	googleLogin,
+	oAuth,
 }
