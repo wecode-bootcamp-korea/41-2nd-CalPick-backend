@@ -12,7 +12,6 @@ const createUser = async(email, password, name) => {
 };
 
 const getUserData = async(email) => {
-	console.log(email)
 	return await appDataSource.query(`
 		SELECT * FROM users
 		WHERE email = ?
@@ -20,14 +19,14 @@ const getUserData = async(email) => {
 	);
 }
 
-const createoAuthUser = async (name, email) => {
+const createoAuthUser = async (name, email, iss, socialId) => {
 	return await appDataSource.query(
 		`INSERT INTO users
-			(email, username)
+			(username, email, social_id, social_type_id)
 		VALUES 
-			(?,?)
+			(?, ?, ?, ?)
 		`,
-		[ email, name ]
+		[ name, email, iss, socialId ]
 	);
 }
 
